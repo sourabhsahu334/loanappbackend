@@ -24,15 +24,19 @@ const userSchema = new mongoose.Schema({
     minLength: [8, "Password should be greater than 8 characters"],
     select: false,
   },
-  avatar: {
-    public_id: {
-      type: String,
-      required: true,
-    },
-    url: {
-      type: String,
-      required: true,
-    },
+  // avatar: {
+  //   public_id: {
+  //     type: String,
+  //     required: true,
+  //   },
+  //   url: {
+  //     type: String,
+  //     required: true,
+  //   },
+  // },
+  token: {
+    type: String,
+   
   },
   role: {
     type: String,
@@ -57,7 +61,9 @@ userSchema.pre("save", async function (next) {
 
 
 userSchema.methods.getJWTToken = function () {
-  return jwt.sign({ id: this._id }, 'hithiermynameisbittusahumyname',{expiresIn:'1d'});
+  const token= jwt.sign({ id: this._id }, 'hithiermynameisbittusahumyname',{expiresIn:'5d'});
+  this.token=token;
+  return token;
 };
 
 
@@ -87,4 +93,4 @@ userSchema.methods.getResetPasswordToken = function () {
 
 
 
-module.exports = mongoose.model("User", userSchema);
+module.exports = mongoose.model("users", userSchema);

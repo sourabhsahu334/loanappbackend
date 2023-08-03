@@ -3,31 +3,49 @@ const sendToken= require("../utils/sendToken");
 const sendEmail = require("../utils/sendEmail");
 const crypto= require("crypto")
 const cloudinary= require("cloudinary");
+const Questions = require("../models/Questions");
 
 exports.registerUser=async(req,res,next)=>{
     try {
-      const myCloud = await cloudinary.v2.uploader.upload(req.body.avatar, {
-        folder: "avatars",
-        width: 150,
-        crop: "scale",
-      });
+      // const myCloud = await cloudinary.v2.uploader.upload(req.body.avatar, {
+      //   folder: "avatars",
+      //   width: 150,
+      //   crop: "scale",
+      // });
         const {name,email,password}=req.body;
         const user = await User.create({
             name,
          email,
         password,
-     avatar: {
-      public_id: myCloud.public_id,
-      url: myCloud.secure_url,
-    },
+      
+       
+    //  avatar: {
+    //   public_id: myCloud.public_id,
+    //   url: myCloud.secure_url,
+    // },
 
         });
-        const token= user.getJWTToken();
-        sendToken(user,201,res);
+        const token = user.getJWTToken();
+        await user.save(); 
+
+        const question = await Questions.create({
+          user:user._id,
+          questions:[],
+
+        })
+        await question.save();
+        const userDataWithoutSensitiveInfo = {
+          name: user.name,
+          email: user.email,
+          _id:user._id
+         
+        };
+        res.json({success:true, user:userDataWithoutSensitiveInfo,question:question});
     } catch (err) {
         res.json({
             
-            message:err.message
+            message:err.message,
+            success:false
         })
     }
 };
@@ -40,7 +58,7 @@ exports.loginUser = async (req, res, next) => {
       // checking if user has given password and email both
     
       if (!email || !password) {
-        return res.status(404).json({
+        return res.status(400).json({
           success:false
         })
       }
@@ -48,7 +66,7 @@ exports.loginUser = async (req, res, next) => {
       const user = await User.findOne({ email }).select("+password");
     
       if (!user) {
-        return res.status(404).json({
+        return res.status(400).json({
           success:false
         })
       }
@@ -56,12 +74,20 @@ exports.loginUser = async (req, res, next) => {
       const isPasswordMatched = await user.comparePassword(password);
     
       if (!isPasswordMatched) {
-        return res.status(404).json({
+        return res.status(400).json({
           success:false
         })
       }
+      const userDataWithoutSensitiveInfo = {
+        name: user.name,
+        email: user.email,
+        // Add other properties you want to include in the response
+      };
     
-      sendToken(user, 200, res);
+    res.json({
+      success:true,
+      user:userDataWithoutSensitiveInfo
+    })
   } catch (err) {
     res.json({
         success:false,

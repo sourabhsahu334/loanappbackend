@@ -1,11 +1,12 @@
 const mongoose = require('mongoose');
 
 mongoose.Promise = global.Promise;
-const db1="mongodb+srv://sourabh2:18jan2002@cluster0.88wwojw.mongodb.net/test"
-const db="mongodb+srv://sourabh:18jan2002@cluster1.bw6g0pq.mongodb.net/Registration"
-const local="mongodb://0.0.0.0:27017/AssignmentZedblock"
+
+const db="mongodb+srv://sourabh:18jan2002@cluster1.bw6g0pq.mongodb.net/AssignmentZedblock"
+const local="mongodb://127.0.0.1:27017/AssignmentZedblock"
 // Connect MongoDB at default port 27017.
-mongoose.connect(local, {
+mongoose.set('strictQuery', false);
+mongoose.connect(db, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
    

@@ -4,7 +4,8 @@
   "description": "",
   "main": "apiFeatures.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev":"nodemon app.js"
   },
   "author": "",
   "license": "ISC",
@@ -36,5 +37,6 @@
     "typescript": "^4.8.3",
     "validator": "^13.7.0",
     "xlsx": "^0.18.5"
-  }
+  },
+  "proxy": "http://172.17.224.1:3000/"
 }
