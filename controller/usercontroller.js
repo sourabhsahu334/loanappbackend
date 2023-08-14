@@ -12,7 +12,7 @@ exports.registerUser=async(req,res,next)=>{
       //   width: 150,
       //   crop: "scale",
       // });
-        const {name,email,password,number,experience,skills,professionalDetails,about,education}=req.body;
+        const {name,email,password,number,experience,skills,professionalDetails,about,education,}=req.body;
         const user = await User.create({
             name,
          email,
@@ -45,7 +45,8 @@ exports.registerUser=async(req,res,next)=>{
           skills:user.skills,
           about:user.about,
           professionalDetails:user.professionalDetails,
-          friends:user.friends
+          friends:user.friends,
+          education:user.education
          
         };
         res.json({success:true, user:userDataWithoutSensitiveInfo,});
@@ -92,7 +93,8 @@ exports.updateuser=async(req,res,next)=>{
         skills: updatedUser.skills,
         about: updatedUser.about,
         professionalDetails: updatedUser.professionalDetails,
-        friends:updatedUser.friends
+        friends:updatedUser.friends,
+        education:updatedUser.education
       };
   
       res.json({ success: true, user: userDataWithoutSensitiveInfo });
@@ -183,7 +185,8 @@ exports.loginUser = async (req, res, next) => {
         skills:user.skills,
         about:user.about,
         professionalDetails:user.professionalDetails,
-        friends:user.friends
+        friends:user.friends,
+        education:user.education
         // Add other properties you want to include in the response
       };
     
