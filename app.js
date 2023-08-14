@@ -13,13 +13,11 @@ const cloudinary= require("cloudinary")
 require("./db/conn")
 //i am sourabh sahu full stack developer
 
-const productroute= require('./routes/productroute');
 const bodyParser = require("body-parser");
 const fileUpload= require("express-fileupload")
 
 
-//const product = require('./models/products');
-const Products=require("./models/Products")
+
 const userRoute=require("./routes/userRoute");
 
 app.use(cookieParser());
@@ -37,7 +35,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(fileUpload())
 
 
-app.use("/api/v1",productroute);
 app.use("/api/v1",userRoute);
 
 

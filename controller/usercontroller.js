@@ -3,7 +3,7 @@ const sendToken= require("../utils/sendToken");
 const sendEmail = require("../utils/sendEmail");
 const crypto= require("crypto")
 const cloudinary= require("cloudinary");
-const Questions = require("../models/Questions");
+
 
 exports.registerUser=async(req,res,next)=>{
     try {
@@ -12,11 +12,17 @@ exports.registerUser=async(req,res,next)=>{
       //   width: 150,
       //   crop: "scale",
       // });
-        const {name,email,password}=req.body;
+        const {name,email,password,number,experience,skills,professionalDetails,about,education}=req.body;
         const user = await User.create({
             name,
          email,
         password,
+        number:number,
+        professionalDetails:professionalDetails,
+        about:about,
+        experience:experience,
+        skills:skills,
+        education:education,
       
        
     //  avatar: {
@@ -28,19 +34,21 @@ exports.registerUser=async(req,res,next)=>{
         const token = user.getJWTToken();
         await user.save(); 
 
-        const question = await Questions.create({
-          user:user._id,
-          questions:[],
-
-        })
-        await question.save();
+    
+       
         const userDataWithoutSensitiveInfo = {
           name: user.name,
           email: user.email,
-          _id:user._id
+          _id:user._id,
+          number:user.number,
+          experience:user.experience,
+          skills:user.skills,
+          about:user.about,
+          professionalDetails:user.professionalDetails,
+          friends:user.friends
          
         };
-        res.json({success:true, user:userDataWithoutSensitiveInfo,question:question});
+        res.json({success:true, user:userDataWithoutSensitiveInfo,});
     } catch (err) {
         res.json({
             
@@ -50,6 +58,94 @@ exports.registerUser=async(req,res,next)=>{
     }
 };
 
+
+exports.updateuser=async(req,res,next)=>{
+  try {
+    const { name, email, number, experience, skills, professionalDetails, about, education, id } = req.body;
+    console.log(id)
+    const filter = { _id: id }; // Filtering by the _id field
+    const update = {
+      $set: {
+        name,
+        email,
+        number,
+        professionalDetails,
+        about,
+        experience,
+        skills,
+        education,
+      },
+    };
+    
+    const updateResult = await User.updateOne(filter, update);
+  
+    if (updateResult.modifiedCount === 1) {
+      // The update was successful
+      const updatedUser = await User.findOne({ _id: id }); // Retrieve the updated user
+  
+      const userDataWithoutSensitiveInfo = {
+        name: updatedUser.name,
+        email: updatedUser.email,
+        _id: updatedUser._id,
+        number: updatedUser.number,
+        experience: updatedUser.experience,
+        skills: updatedUser.skills,
+        about: updatedUser.about,
+        professionalDetails: updatedUser.professionalDetails,
+        friends:updatedUser.friends
+      };
+  
+      res.json({ success: true, user: userDataWithoutSensitiveInfo });
+    } else {
+      res.json({
+        success: false,
+        error: "User not found or update unsuccessful",
+      });
+    }
+  } catch (error) {
+    res.json({
+      error: error.message,
+      success: false,
+    });
+  }
+}  
+
+
+exports.addconnection=async(req,res,next)=>{
+  try {
+     const {freindid,id}=req.body;
+     const obj={
+      status:"pending",
+      id:freindid
+     }
+     await User.updateOne({_id:id},{$push:{
+      friends:obj
+     }});
+     const user = await User.findOne({_id:id});
+     res.json({
+      success:true,
+      user:user
+     })
+  } catch (error) {
+    res.json({
+      error:error.message,
+      success:false
+    })
+  }
+}
+
+exports.myconnections=async(req,res,next)=>{
+  try {
+    const {idarray}=req.query;
+    console.log(idarray)
+    //const newarray = idarray.map(id=>ObjectId(id))
+    const users= await User.find({_id:{$in:idarray}});
+    res.json({users:users,success:true})
+  } catch (error) {
+    res.json({error:error.message,success:false})
+  }
+
+}
 
 exports.loginUser = async (req, res, next) => {
   try {
@@ -81,6 +177,13 @@ exports.loginUser = async (req, res, next) => {
       const userDataWithoutSensitiveInfo = {
         name: user.name,
         email: user.email,
+        _id:user._id,
+        number:user.number,
+        experience:user.experience,
+        skills:user.skills,
+        about:user.about,
+        professionalDetails:user.professionalDetails,
+        friends:user.friends
         // Add other properties you want to include in the response
       };
     

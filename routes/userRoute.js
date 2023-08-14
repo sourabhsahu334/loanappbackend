@@ -1,27 +1,19 @@
 const express= require("express");
 const router= express.Router();
-const {registerUser, loginUser, logout, forgotPassword, resetPassword, updateProfile, getUserDetails, getAllUser, getSingleUser, updateUserRole, deleteUser, updatePassword}=require("../controller/usercontroller");
+const {registerUser, loginUser, logout, forgotPassword, resetPassword, updateProfile, getUserDetails, getAllUser, getSingleUser, updateUserRole, deleteUser, updatePassword, updateuser, addconnection, myconnections}=require("../controller/usercontroller");
 const { isAuthenticatedUser, authorizeRoles } = require("../midelware/auth");
 
 
 router.route("/register").post(registerUser)
 router.route("/login").post(loginUser);
 router.route("/logout").get(logout);
-router.route("/forgetPassword").post(forgotPassword);
-router.route("/password/reset/:token").put(resetPassword);
-router.route("/me").get(isAuthenticatedUser,getUserDetails);
-router.route("/password/update").put(isAuthenticatedUser, updatePassword);
-router.route("/me/update").put(isAuthenticatedUser, updateProfile);
+
+router.route("/me/update").put(updateuser);
+
+router.put("/addconnection",addconnection);
+router.get("/myconnections",myconnections)
+router.route("/all").get( getAllUser);
 
 
-router
-  .route("/admin/users")
-  .get(isAuthenticatedUser, authorizeRoles("admin"), getAllUser);
-
-  router
-  .route("/admin/user/:id")
-  .get(isAuthenticatedUser, authorizeRoles("admin"), getSingleUser)
-  .put(isAuthenticatedUser, authorizeRoles("admin"), updateUserRole)
-  .delete(isAuthenticatedUser, authorizeRoles("admin"), deleteUser);
 
 module.exports=router;
