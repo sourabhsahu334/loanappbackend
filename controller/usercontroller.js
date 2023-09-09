@@ -3,51 +3,175 @@ const sendToken= require("../utils/sendToken");
 const sendEmail = require("../utils/sendEmail");
 const crypto= require("crypto")
 const cloudinary= require("cloudinary");
+const Loanuser = require("../models/Loanuser");
+const Loan = require("../models/Loan");
+const { v4: uuidv4 } = require('uuid');
+
+exports.deleterequest = async(req,res,next)=>{
+  try {
+    const {id}=req.body;
+    console.log(id)
+    const data = await Loan.deleteOne({_id:id});
+    if( data){
+      res.json({
+  data:data
+      })
+    }
+    else{
+      res.json({
+        success:false
+      })
+    }
+  } catch (error) {
+   
+      res.json({
+        error:error,
+        success:false
+      })
+  
+  }
+}
+
+exports.approveloan = async(req,res,next)=>{
+  try {
+    const {id}=req.body;
+    const data = await Loan.findOneAndUpdate({_id:id},{
+      $set:{status:"approved",
+      issuedDate:new Date()}
+    },{new:true});
+    if( data){
+      res.json({
+        data:data,
+        success:true
+      })
+    }
+    else{
+      res.json({
+        success:false
+      })
+    }
+  } catch (error) {
+   
+      res.json({
+        error:error,
+        success:false
+      })
+  
+  }
+}
+
+exports.getallloans= async(req,res,next)=>{
+  try {
+    const data = await Loan.find();
+    if(data){
+      res.json({data:data,success:true})
+    }
+    else{
+      res.json({
+        success:false
+      })
+    }
+  } catch (error) {
+    res.json({
+      success:false
+    })
+  }
+}
+
+exports.checkadminrole=async(req,res,next)=>{
+  try {
+    const {userid}=req.body;
+    const data = await Loanuser.findOne({_id:userid});
+   if(data.role=='admin'){
+    res.json({
+      success:true
+    })
+   }
+   else{
+   
+    res.json({
+      success:false
+    })
+   }
+  } catch (error) {
+    res.json({
+      success:false
+    })
+  }
+}
+
+exports.checkloans = async ( req,res,next)=>{
+  try {
+    const {userid}=req.body;
+    const data= await Loan.find({userId:userid});
+    res.json({
+      success:true,data:data
+    })
+  } catch (error) {
+    res.json({
+      success:false,error:error.message
+    })
+  }
+}
+
+
+exports.applyforloan = async(req,res,next)=>{
+  const uniqueId = uuidv4();
+    try {
+         const {userid,loanid,useremail}=req.body
+         let installation = 0;
+         let loantype= "default";
+         if( loanid==1){
+          installation=18
+          loantype="short"
+         }
+         if(loanid==2){
+          installation=26
+          loantype="medium"
+         }
+         if(loanid==3){
+          installation=46
+          loantype="long"
+         }
+         const data = await Loan.create({
+          userId:userid,
+          installation:installation,
+          type:loantype,
+          loanid:uniqueId,
+          useremail:useremail
+
+          
+         })
+         res.json({success:true,});
+
+    } catch (error) {
+      res.json({
+            
+        message:error.message,
+        success:false
+    })
+    }
+}
 
 
 exports.registerUser=async(req,res,next)=>{
     try {
-      // const myCloud = await cloudinary.v2.uploader.upload(req.body.avatar, {
-      //   folder: "avatars",
-      //   width: 150,
-      //   crop: "scale",
-      // });
-        const {name,email,password,number,experience,skills,professionalDetails,about,education,}=req.body;
-        const user = await User.create({
+
+        const {name,email,password}=req.body;
+        const user = await Loanuser.create({
             name,
          email,
         password,
-        number:number,
-        professionalDetails:professionalDetails,
-        about:about,
-        experience:experience,
-        skills:skills,
-        education:education,
-      
-       
-    //  avatar: {
-    //   public_id: myCloud.public_id,
-    //   url: myCloud.secure_url,
-    // },
+
 
         });
         const token = user.getJWTToken();
         await user.save(); 
 
-    
-       
         const userDataWithoutSensitiveInfo = {
           name: user.name,
           email: user.email,
-          _id:user._id,
-          number:user.number,
-          experience:user.experience,
-          skills:user.skills,
-          about:user.about,
-          professionalDetails:user.professionalDetails,
-          friends:user.friends,
-          education:user.education
-         
+          id:user._id
         };
         res.json({success:true, user:userDataWithoutSensitiveInfo,});
     } catch (err) {
@@ -113,41 +237,7 @@ exports.updateuser=async(req,res,next)=>{
 }  
 
 
-exports.addconnection=async(req,res,next)=>{
-  try {
-     const {freindid,id}=req.body;
-     const obj={
-      status:"pending",
-      id:freindid
-     }
-     await User.updateOne({_id:id},{$push:{
-      friends:obj
-     }});
-     const user = await User.findOne({_id:id});
-     res.json({
-      success:true,
-      user:user
-     })
-  } catch (error) {
-    res.json({
-      error:error.message,
-      success:false
-    })
-  }
-}
 
-exports.myconnections=async(req,res,next)=>{
-  try {
-    const {idarray}=req.query;
-    console.log(idarray)
-    //const newarray = idarray.map(id=>ObjectId(id))
-    const users= await User.find({_id:{$in:idarray}});
-    res.json({users:users,success:true})
-  } catch (error) {
-    res.json({error:error.message,success:false})
-  }
-
-}
 
 exports.loginUser = async (req, res, next) => {
   try {
@@ -161,7 +251,7 @@ exports.loginUser = async (req, res, next) => {
         })
       }
     
-      const user = await User.findOne({ email }).select("+password");
+      const user = await Loanuser.findOne({ email }).select("+password");
     
       if (!user) {
         return res.status(400).json({
@@ -179,14 +269,7 @@ exports.loginUser = async (req, res, next) => {
       const userDataWithoutSensitiveInfo = {
         name: user.name,
         email: user.email,
-        _id:user._id,
-        number:user.number,
-        experience:user.experience,
-        skills:user.skills,
-        about:user.about,
-        professionalDetails:user.professionalDetails,
-        friends:user.friends,
-        education:user.education
+         id:user._id
         // Add other properties you want to include in the response
       };
     
